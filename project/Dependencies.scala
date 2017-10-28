@@ -1,8 +1,6 @@
 import sbt._
-import org.scalajs.sbtplugin.impl.ScalaJSGroupID
 
 object Dependencies {
-  import org.scalajs.sbtplugin.impl.ScalaJSGroupID._
   // Versions
   lazy val akkaVersion            = "2.3.8"
   lazy val playJsonV              = "2.6.7" // For Mongo.
@@ -23,6 +21,4 @@ object Dependencies {
   val backendDeps =
     Seq(akkaHttp, akkaStream, akkaActor, akkaHttpSprayJson, logBack, scalaLogging, reactiveMongo)
 
-  val frontendDeps =
-    Seq()
 }

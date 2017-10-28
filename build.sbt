@@ -1,4 +1,6 @@
 import Dependencies._
+import sbt.Keys.libraryDependencies
+
 name := "chores"
 
 version := "0.1"
@@ -25,11 +27,6 @@ wartremoverErrors ++= Warts.allBut(
   Wart.Serializable
 )
 
-val playJsonV              = "2.6.7" // For Mongo.
-val pureConfigV            = "0.8.0"
-val reactiveMongoV         = "0.12.6"
-val reactiveMongoPlayJsonV = "0.12.7-play26" // For Mongo.
-
 lazy val root = (project in file("."))
   .aggregate(backend, frontend)
 
@@ -38,8 +35,17 @@ lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.12.4"
 )
+
+//val scalaJsDom = "org.scala-js" %%% "scalajs-dom" % "0.9.3"
+
+
+//lazy val frontendDeps =
+//  Seq("be.doeraene" %%% "scalajs-jquery" % "0.9.1")
+
 lazy val frontendSettings = Seq(
-  scalaJSUseMainModuleInitializer := true
+  scalaJSUseMainModuleInitializer := true,
+  skip in packageJSDependencies := false,
+  jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv()
 )
 
 lazy val backend = (project in file("backend"))
@@ -51,7 +57,8 @@ lazy val frontend = (project in file("frontend"))
   .settings(
     commonSettings,
     frontendSettings,
-    libraryDependencies ++= frontendDeps,
-    libraryDependencies ++= "org.scala-js" %%% "scalajs-dom" % "0.9.2"
-  ).enablePlugins(ScalaJSPlugin)
-
+    libraryDependencies ++= Seq("be.doeraene" %%% "scalajs-jquery" % "0.9.1", "com.lihaoyi" %%% "utest" % "0.4.4" % "test"),
+    jsDependencies += "org.webjars" % "jquery" % "2.1.4" / "2.1.4/jquery.js",
+    testFrameworks += new TestFramework("utest.runner.Framework")
+  )
+  .enablePlugins(ScalaJSPlugin)
