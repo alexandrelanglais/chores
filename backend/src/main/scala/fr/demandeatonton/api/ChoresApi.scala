@@ -1,6 +1,6 @@
 package fr.demandeatonton.api
 
-import fr.demandeatonton.model.Chore
+import fr.demandeatonton.model.{Chore, Chores}
 
 import scala.concurrent.Future
 
@@ -10,4 +10,5 @@ trait ChoresApi {
   def updateChore(chore: Chore): Future[Int]
   def findChoreByName(name: String): Future[List[Chore]]
   def findChoreById(id: Int): Future[Option[Chore]]
+  def allChores(): Future[Chores]
 }

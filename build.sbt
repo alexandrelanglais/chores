@@ -62,3 +62,4 @@ lazy val frontend = (project in file("frontend"))
     testFrameworks += new TestFramework("utest.runner.Framework")
   )
   .enablePlugins(ScalaJSPlugin)
+

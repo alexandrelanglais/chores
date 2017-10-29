@@ -1,21 +1,14 @@
 package fr.demandeatonton.dao
 
 import fr.demandeatonton.api.ChoresApi
-import fr.demandeatonton.model.Chore
+import fr.demandeatonton.model.{Chore, Chores}
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.{Collection, DefaultDB, MongoConnection, MongoDriver}
-import reactivemongo.bson.BSONDocumentReader
-import reactivemongo.bson.BSONDocumentWriter
-import reactivemongo.bson.Macros
-import reactivemongo.bson.document
+import reactivemongo.api.{DefaultDB, MongoConnection, MongoDriver}
+import reactivemongo.bson.{BSONDocumentReader, BSONDocumentWriter, Macros, document}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
-import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 final case class ChoresDaoImpl() extends ChoresApi {
   // My settings (see available connection options)
@@ -72,6 +65,11 @@ final case class ChoresDaoImpl() extends ChoresApi {
   override def findChoreById(id: Int): Future[Option[Chore]] =
     choresCollection.flatMap(
       _.find(document("id" -> id)).one[Chore]) // collect using the result cursor
+
+  override def allChores(): Future[Chores] =
+    choresCollection.flatMap(
+    _.find(document). // query builder
+      cursor[Chore]().collect[List]()).flatMap(x => Future(Chores(x))) // collect using the result cursor
 
 }
 
