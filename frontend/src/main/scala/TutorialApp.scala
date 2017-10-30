@@ -30,9 +30,9 @@ object TutorialApp {
               println(s"data=$data,text=$textStatus,jqXHR=$jqXHR")
               val json = JSON.stringify(data)
               val parsed = jQuery.parseJSON(json).selectDynamic("chores")
-              val json2 = JSON.stringify(parsed)
-              val parsed2 = jQuery.parseJSON(json2)
-              val myArray = parsed2.asInstanceOf[js.Array[Chore]]
+              val subJson = JSON.stringify(parsed)
+              val subParsed = jQuery.parseJSON(subJson)
+              val myArray = subParsed.asInstanceOf[js.Array[Chore]]
 
               myArray.map(x =>
                 jQuery("body").append(s"<p>Id: ${x.id} - Name : ${x.name}")
