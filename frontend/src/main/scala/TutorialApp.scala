@@ -20,9 +20,10 @@ object FormToJson extends js.Object {
 
 @js.native
 trait Chore extends js.Object {
-  val id:          String    = js.native
+  val id:          String = js.native
   val name:        String = js.native
   val description: String = js.native
+  val imgPath:     String = js.native
 }
 
 object TutorialApp {
@@ -50,7 +51,10 @@ object TutorialApp {
               val subJson   = JSON.stringify(parsed)
               val subParsed = jQuery.parseJSON(subJson)
               val myArray   = subParsed.asInstanceOf[js.Array[Chore]]
-              myArray.map(x => jQuery("#lstChores").append(s"<p>Id: ${x.id} - Name : ${x.name} - Description : ${x.description}"))
+              myArray.map(
+                x =>
+                  jQuery("#lstChores").append(
+                    s"<p>Name : ${x.name} - Description : ${x.description} - Image : <a href='images/${x.imgPath}'>${x.imgPath}</a>"))
             },
             error = { (jqXHR: JQueryXHR, textStatus: String, errorThrow: String) =>
               println(s"jqXHR=$jqXHR,text=$textStatus,err=$errorThrow")

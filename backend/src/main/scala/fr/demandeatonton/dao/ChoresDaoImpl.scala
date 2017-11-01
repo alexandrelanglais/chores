@@ -71,7 +71,7 @@ final case class ChoresDaoImpl() extends ChoresApi {
       _.find(document("name" -> name)). // query builder
       cursor[Chore]().collect[List]()) // collect using the result cursor
 
-  override def findChoreById(id: Int): Future[Option[Chore]] =
+  override def findChoreById(id: String): Future[Option[Chore]] =
     choresCollection.flatMap(_.find(document("id" -> id)).one[Chore]) // collect using the result cursor
 
   override def allChores(): Future[Chores] =
@@ -88,13 +88,13 @@ object ChoresDaoImpl {
   def main(args: Array[String]): Unit = {
     val dao = ChoresDaoImpl()
 
-    val f = dao
-      .createChore(Chore(id = UUID.randomUUID().toString, name = "Vaisselle", description = "Faire la vaisselle"))
-
-    f.onComplete(_ match {
-      case Success(s) => println(s)
-      case Failure(e) => println(e)
-    })
+//    val f = dao
+//      .createChore(Chore(id = UUID.randomUUID().toString, name = "Vaisselle", description = "Faire la vaisselle"))
+//
+//    f.onComplete(_ match {
+//      case Success(s) => println(s)
+//      case Failure(e) => println(e)
+//    })
   }
 
 }

@@ -1,8 +1,10 @@
+import sbt.Keys.libraryDependencies
 import sbt._
 
 object Dependencies {
   // Versions
   lazy val akkaVersion            = "2.3.8"
+  lazy val betterFilesV           = "3.2.0"
   lazy val playJsonV              = "2.6.7" // For Mongo.
   lazy val pureConfigV            = "0.8.0"
   lazy val reactiveMongoV         = "0.12.6"
@@ -17,9 +19,10 @@ object Dependencies {
   val scalaLogging      = "com.typesafe.scala-logging" %% "scala-logging"        % "3.7.2"
   val reactiveMongo     = "org.reactivemongo"          %% "reactivemongo"        % reactiveMongoV
   val cors              = "ch.megard"                  %% "akka-http-cors"       % "0.2.2"
+  val betterFiles       = "com.github.pathikrit"       %% "better-files"         % betterFilesV
 
   // Projects
   val backendDeps =
-    Seq(akkaHttp, akkaStream, akkaActor, akkaHttpSprayJson, logBack, scalaLogging, reactiveMongo, cors)
+    Seq(akkaHttp, akkaStream, akkaActor, akkaHttpSprayJson, betterFiles, logBack, scalaLogging, reactiveMongo, cors)
 
 }

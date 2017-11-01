@@ -12,13 +12,14 @@ trait ChoresApi {
   def deleteChore(chore:    Chore):  Future[Int]
   def updateChore(chore:    Chore):  Future[Int]
   def findChoreByName(name: String): Future[List[Chore]]
-  def findChoreById(id:     Int):    Future[Option[Chore]]
+  def findChoreById(id:     String): Future[Option[Chore]]
   def allChores(): Future[Chores]
 }
 
 final case class ChoreInput(
-    name: String,
+    name:        String,
     description: String,
+    imgPath:     Option[String] = Option.empty
 ) {
-  def toChore() = Chore(UUID.randomUUID().toString, name, description)
+  def toChore() = Chore(UUID.randomUUID().toString, name, description, imgPath.getOrElse(""))
 }
