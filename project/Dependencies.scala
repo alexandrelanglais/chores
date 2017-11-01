@@ -16,9 +16,10 @@ object Dependencies {
   val logBack           = "ch.qos.logback"             % "logback-classic"       % "1.2.3"
   val scalaLogging      = "com.typesafe.scala-logging" %% "scala-logging"        % "3.7.2"
   val reactiveMongo     = "org.reactivemongo"          %% "reactivemongo"        % reactiveMongoV
+  val cors              = "ch.megard"                  %% "akka-http-cors"       % "0.2.2"
 
   // Projects
   val backendDeps =
-    Seq(akkaHttp, akkaStream, akkaActor, akkaHttpSprayJson, logBack, scalaLogging, reactiveMongo)
+    Seq(akkaHttp, akkaStream, akkaActor, akkaHttpSprayJson, logBack, scalaLogging, reactiveMongo, cors)
 
 }

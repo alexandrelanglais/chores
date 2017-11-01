@@ -2,29 +2,39 @@ package fr.demandeatonton
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.ContentTypes.`application/json`
+import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.MethodRejection
+import akka.http.scaladsl.server.RejectionHandler
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
+import fr.demandeatonton.api.ChoreInput
 import fr.demandeatonton.dao.ChoresDaoImpl
-import fr.demandeatonton.model.{Chore, Chores}
-import spray.json.DefaultJsonProtocol._
+import fr.demandeatonton.model.Chore
+import fr.demandeatonton.model.Chores
+import spray.json.DefaultJsonProtocol
 
 import scala.collection.immutable
 import scala.io.StdIn
-import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.util.Success
 
 sealed trait SrvResponses {}
 
 object SrvResponses {
   final case class SrvChoreCreated(chore: Chore) extends SrvResponses
 }
-object CorsWorkAround {
+
+trait CorsWorkAround {
 
   def corsWorkAround(route: Route): Route =
     respondWithDefaultHeaders(
@@ -34,32 +44,47 @@ object CorsWorkAround {
         `Access-Control-Expose-Headers`("Set-Authorization"),
         `Access-Control-Allow-Methods`(PATCH, GET, POST, PUT, DELETE, OPTIONS)
       ))(route)
+
+  implicit def rejectionHandler =
+    RejectionHandler
+      .newBuilder()
+      .handleAll[MethodRejection] { rejections =>
+        val methods    = rejections map (_.supported)
+        lazy val names = methods map (_.name) mkString ", "
+        respondWithHeader(Allow(methods)) {
+          options {
+            complete(s"Supported methods : $names.")
+          } ~
+            complete(MethodNotAllowed, s"HTTP method not allowed, supported methods: $names!")
+        }
+      }
+      .result()
 }
 
-object WebServer {
-  import fr.demandeatonton.CorsWorkAround._
+// collect your json format instances into a support trait:
+trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+  implicit val choreInputFormat = jsonFormat2(ChoreInput)
+  implicit val choreFormat      = jsonFormat3(Chore)
+  implicit val choresFormat     = jsonFormat1(Chores)
+}
 
-  implicit val choreFormat = jsonFormat2(Chore)
-  implicit val choresFormat = jsonFormat1(Chores)
+object WebServer extends Directives with JsonSupport with CorsWorkAround {
 
   def main(args: Array[String]) {
     implicit val system       = ActorSystem("my-system")
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.dispatcher
+    val settings                  = CorsSettings.defaultSettings.copy(allowedOrigins = HttpOriginRange.*)
+    val choresApi                 = ChoresDaoImpl()
 
-    val choresApi = ChoresDaoImpl()
-    val routes: Route = corsWorkAround(
-      path("hello") {
-        get {
-          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
-        }
-      } ~
-        path("api" / "chores") {
+    val routes: Route = cors(settings) {
+      pathPrefix("api") {
+        path("chores") {
           get {
             onComplete(
               choresApi
-                  .allChores()
+                .allChores()
             ) {
               _ match {
                 case Success(list: Chores) => complete(list)
@@ -68,19 +93,21 @@ object WebServer {
             }
           } ~
             post {
-              entity(as[Chore]) { chore =>
+              entity(as[ChoreInput]) { choreInput =>
                 onComplete(
                   choresApi
-                    .createChore(chore)
+                    .createChore(choreInput.toChore)
                 ) {
                   _ match {
-                    case Success(()) => complete(Created, HttpEntity(`application/json`, "Created"))
-                    case Failure(ex) => complete(BadRequest, HttpEntity(`application/json`, ex.getMessage))
+                    case Success(chore) => complete(Created, "Ok")
+                    case Failure(ex) => complete(BadRequest, ex.getMessage)
                   }
                 }
               }
             }
-        })
+        }
+      }
+    }
 
     val bindingFuture = Http().bindAndHandle(routes, "localhost", 8080)
 

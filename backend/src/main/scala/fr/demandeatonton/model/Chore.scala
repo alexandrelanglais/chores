@@ -1,4 +1,6 @@
 package fr.demandeatonton.model
 
-final case class Chore(id: Int, name: String)
+import java.util.UUID
+
+final case class Chore(id:      String, name: String, description: String)
 final case class Chores(chores: List[Chore])

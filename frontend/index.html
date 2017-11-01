@@ -8,6 +8,23 @@
 <!-- Include Scala.js compiled code -->
 <script type="text/javascript" src="./target/scala-2.12/frontend-jsdeps.js"></script>
 <script type="text/javascript" src="./target/scala-2.12/frontend-fastopt.js"></script>
+<script>
+function objectifyForm(id) {
+  var formArray = $(id).serializeArray();
+  var returnArray = {};
+  for (var i = 0; i < formArray.length; i++){
+    returnArray[formArray[i]['name']] = formArray[i]['value'];
+  }
+  return JSON.stringify(returnArray);
+}
+</script>
+<button id="refreshChores">Refresh chores</button>
 
+<form method="post" id="createChore" name="chore">
+    <input type="text" placeholder="Chore name" name="name" value="A chore">
+    <input type="text" placeholder="Chore desc" name="description" value="A description">
+    <input type="submit" value="Envoyer"/>
+</form>
+<div id="lstChores"/>
 </body>
 </html>

@@ -1,12 +1,28 @@
+import org.scalajs.dom.ext.Ajax
+import org.scalajs.dom.raw.FormData
+
 import scala.scalajs.js
+import org.scalajs.jquery.jQuery
 import org.scalajs.jquery._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.JSON
+import scala.scalajs.js.annotation.JSGlobal
+import scala.scalajs.js.annotation.JSGlobalScope
+import scala.util.Failure
+import scala.util.Success
+
+@js.native
+@JSGlobalScope
+object FormToJson extends js.Object {
+  def objectifyForm(id: String): String = js.native
+}
 
 @js.native
 trait Chore extends js.Object {
-  val id: Int = js.native
-  val name: String = js.native
+  val id:          String    = js.native
+  val name:        String = js.native
+  val description: String = js.native
 }
 
 object TutorialApp {
@@ -15,12 +31,13 @@ object TutorialApp {
     jQuery(() => setupUI())
 
   def setupUI(): Unit = {
-    jQuery("body").append("<p>Hello World</p>")
-    jQuery("body").append("<p><button id='click-me-button'>Click me!</button></p>")
-    jQuery("#click-me-button").click(() => showChores())
+    jQuery("#refreshChores").click(() => showChores())
+    jQuery("#createChore").submit((e) => createChore(e))
+    showChores()
   }
 
   def showChores(): Unit = {
+    jQuery("#lstChores").empty()
     val req = jQuery
       .ajax(
         js.Dynamic
@@ -28,24 +45,43 @@ object TutorialApp {
             url = "http://localhost:8080/api/chores",
             success = { (data: js.Any, textStatus: String, jqXHR: JQueryXHR) =>
               println(s"data=$data,text=$textStatus,jqXHR=$jqXHR")
-              val json = JSON.stringify(data)
-              val parsed = jQuery.parseJSON(json).selectDynamic("chores")
-              val subJson = JSON.stringify(parsed)
+              val json      = JSON.stringify(data)
+              val parsed    = jQuery.parseJSON(json).selectDynamic("chores")
+              val subJson   = JSON.stringify(parsed)
               val subParsed = jQuery.parseJSON(subJson)
-              val myArray = subParsed.asInstanceOf[js.Array[Chore]]
-
-              myArray.map(x =>
-                jQuery("body").append(s"<p>Id: ${x.id} - Name : ${x.name}")
-              )
+              val myArray   = subParsed.asInstanceOf[js.Array[Chore]]
+              myArray.map(x => jQuery("#lstChores").append(s"<p>Id: ${x.id} - Name : ${x.name} - Description : ${x.description}"))
             },
             error = { (jqXHR: JQueryXHR, textStatus: String, errorThrow: String) =>
               println(s"jqXHR=$jqXHR,text=$textStatus,err=$errorThrow")
             },
-            `type` = "GET",
+            `type`   = "GET",
             dataType = "json"
           )
           .asInstanceOf[JQueryAjaxSettings])
 
+  }
+
+  def createChore(e: JQueryEventObject): Unit = {
+    e.preventDefault()
+    println("yo")
+
+    val req = jQuery
+      .ajax(
+        js.Dynamic
+          .literal(
+            url = "http://localhost:8080/api/chores",
+            success = { (data: js.Any, textStatus: String, jqXHR: JQueryXHR) =>
+              showChores()
+            },
+            error = { (jqXHR: JQueryXHR, textStatus: String, errorThrow: String) =>
+              println(s"jqXHR=$jqXHR,text=$textStatus,err=$errorThrow")
+            },
+            `type`      = "POST",
+            contentType = "application/json",
+            data        = FormToJson.objectifyForm("#createChore")
+          )
+          .asInstanceOf[JQueryAjaxSettings])
   }
 
 }
